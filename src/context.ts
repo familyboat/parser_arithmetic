@@ -74,16 +74,16 @@ export class Context {
       let arithmetic: PossibleOperand | null = null;
 
       if (isPlusToken(token)) {
-        const rightOperand = this.#parsePlusOrMinus();
+        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide();
         arithmetic = new PlusArithmetic(leftOperand, rightOperand);
       } else if (isMinusToken(token)) {
-        const rightOperand = this.#parsePlusOrMinus();
+        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide();
         arithmetic = new MinusAtirhmetic(leftOperand, rightOperand);
       } else if (isMultiToken(token)) {
-        const rightOperand = this.#parseMultiOrDivide();
+        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide();
         arithmetic = new MultiArithmetic(leftOperand, rightOperand);
       } else if (isDivideToken(token)) {
-        const rightOperand = this.#parseMultiOrDivide();
+        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide();
         arithmetic = new DivideArithmetic(leftOperand, rightOperand);
       }
 
@@ -104,9 +104,9 @@ export class Context {
   }
 
   /**
-   * 解析加减法的右操作数
+   * 解析加减乘除的右操作数
    */
-  #parsePlusOrMinus(): PossibleOperand {
+  #parsePlusOrMinusOrMultiOrDivide(): PossibleOperand {
     const firstToken = this.#scanner.scan();
     const secondToken = this.#scanner.scan();
 
@@ -118,47 +118,14 @@ export class Context {
         this.#nextToken = secondToken;
         return firstToken;
       } else if (isMultiToken(secondToken)) {
-        const rightOperand = this.#parseMultiOrDivide();
+        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide();
         return new MultiArithmetic(firstToken, rightOperand);
       } else if (isDivideToken(secondToken)) {
-        const rightOperand = this.#parseMultiOrDivide();
+        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide();
         return new DivideArithmetic(firstToken, rightOperand);
       } else {
         this.#scanner.createErrorForToken(
           secondToken,
-          ParseErrorKind.ArithmeticError,
-        );
-      }
-    } else {
-      this.#scanner.createErrorForToken(
-        firstToken,
-        ParseErrorKind.ArithmeticError,
-      );
-    }
-  }
-
-  /**
-   * 解析乘除法的右操作数
-   */
-  #parseMultiOrDivide(): PossibleOperand {
-    const firstToken = this.#scanner.scan();
-    const secondToken = this.#scanner.scan();
-    if (isIntegerToken(firstToken)) {
-      if (
-        (isPlusToken(secondToken) || isMinusToken(secondToken)) ||
-        isNoneToken(secondToken)
-      ) {
-        this.#nextToken = secondToken;
-        return firstToken;
-      } else if (isMultiToken(secondToken)) {
-        const rightOperand = this.#parseMultiOrDivide();
-        return new MultiArithmetic(firstToken, rightOperand);
-      } else if (isDivideToken(secondToken)) {
-        const rightOperand = this.#parseMultiOrDivide();
-        return new DivideArithmetic(firstToken, rightOperand);
-      } else {
-        this.#scanner.createErrorForToken(
-          firstToken,
           ParseErrorKind.ArithmeticError,
         );
       }
