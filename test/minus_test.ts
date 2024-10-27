@@ -12,11 +12,11 @@ Deno.test({
 });
 
 Deno.test({
-  name: "89-0-1",
+  name: "89-8-1",
   fn() {
-    const text = "89-0-1";
+    const text = "89-8-1";
     const context = new Context(text);
     const result = context.parse();
-    assert.equal(result, 88);
+    assert.equal(result, 80);
   },
 });

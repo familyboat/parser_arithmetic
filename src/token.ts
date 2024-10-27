@@ -1,10 +1,18 @@
 export type TokenKind =
   | IntegerToken
+  | OperatorTokenKind
+  | NoneToken;
+
+export type OperatorTokenKind =
   | PlusToken
   | MinusToken
   | MultiToken
-  | DivideToken
-  | NoneToken;
+  | DivideToken;
+
+export function isOperatorToken(token: unknown): token is OperatorTokenKind {
+  return isPlusToken(token) || isMinusToken(token) || isMultiToken(token) ||
+    isDivideToken(token);
+}
 
 export function isIntegerToken(token: unknown): token is IntegerToken {
   return token !== null && typeof token === "object" &&

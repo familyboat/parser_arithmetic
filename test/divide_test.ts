@@ -22,6 +22,26 @@ Deno.test({
 });
 
 Deno.test({
+  name: "50/2/5",
+  fn() {
+    const text = "50/2/5";
+    const context = new Context(text);
+    const result = context.parse();
+    assert.equal(result, 5);
+  },
+});
+
+Deno.test({
+  name: "50/2/5/5",
+  fn() {
+    const text = "50/2/5/5";
+    const context = new Context(text);
+    const result = context.parse();
+    assert.equal(result, 1);
+  },
+});
+
+Deno.test({
   name: "50/0",
   fn() {
     const text = "50/0";

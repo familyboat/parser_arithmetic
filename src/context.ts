@@ -13,7 +13,9 @@ import {
   isMinusToken,
   isMultiToken,
   isNoneToken,
+  isOperatorToken,
   isPlusToken,
+  type OperatorTokenKind,
   type TokenKind,
 } from "./token.ts";
 
@@ -74,16 +76,16 @@ export class Context {
       let arithmetic: PossibleOperand | null = null;
 
       if (isPlusToken(token)) {
-        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide();
+        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide(token);
         arithmetic = new PlusArithmetic(leftOperand, rightOperand);
       } else if (isMinusToken(token)) {
-        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide();
+        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide(token);
         arithmetic = new MinusAtirhmetic(leftOperand, rightOperand);
       } else if (isMultiToken(token)) {
-        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide();
+        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide(token);
         arithmetic = new MultiArithmetic(leftOperand, rightOperand);
       } else if (isDivideToken(token)) {
-        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide();
+        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide(token);
         arithmetic = new DivideArithmetic(leftOperand, rightOperand);
       }
 
@@ -106,22 +108,25 @@ export class Context {
   /**
    * 解析加减乘除的右操作数
    */
-  #parsePlusOrMinusOrMultiOrDivide(): PossibleOperand {
+  #parsePlusOrMinusOrMultiOrDivide(
+    previousToken: OperatorTokenKind,
+  ): PossibleOperand {
     const firstToken = this.#scanner.scan();
     const secondToken = this.#scanner.scan();
 
     if (isIntegerToken(firstToken)) {
       if (
-        (isPlusToken(secondToken) || isMinusToken(secondToken)) ||
-        isNoneToken(secondToken)
+        isNoneToken(secondToken) ||
+        (isOperatorToken(secondToken) &&
+          this.#compareOperatorLevel(previousToken, secondToken))
       ) {
         this.#nextToken = secondToken;
         return firstToken;
       } else if (isMultiToken(secondToken)) {
-        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide();
+        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide(secondToken);
         return new MultiArithmetic(firstToken, rightOperand);
       } else if (isDivideToken(secondToken)) {
-        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide();
+        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide(secondToken);
         return new DivideArithmetic(firstToken, rightOperand);
       } else {
         this.#scanner.createErrorForToken(
@@ -135,5 +140,19 @@ export class Context {
         ParseErrorKind.ArithmeticError,
       );
     }
+  }
+
+  /**
+   * 判断两个运算符的等级
+   * a 大于等于 b，返回 true。例如：a 是乘法，b 是加法
+   */
+  #compareOperatorLevel(a: OperatorTokenKind, b: OperatorTokenKind) {
+    if (isPlusToken(b) || isMinusToken(b)) return true;
+    if (
+      (isMultiToken(a) || isDivideToken(a)) &&
+      (isMultiToken(b) || isDivideToken(b))
+    ) return true;
+
+    return false;
   }
 }
