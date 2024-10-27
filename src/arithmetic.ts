@@ -1,4 +1,4 @@
-import { type IntegerToken, isIntegerToken } from "./token.ts";
+import { type IntegerToken, isIntegerToken, NoneToken, type TokenKind } from "./token.ts";
 
 /**
  * +、-、*、/ 四种运算合法的操作数
@@ -163,5 +163,18 @@ export class DivideArithmetic extends BaseArithmetic implements Arithmetic {
 
   pretty(): string {
     return `${this.prettyLeft()} / ${this.prettyRight()}`;
+  }
+}
+
+type ChildrenType = Array<Exclude<TokenKind, NoneToken> | ParenthesisArithmetic>
+
+/**
+ * 圆括号表达式
+ */
+export class ParenthesisArithmetic {
+  children: ChildrenType;
+
+  constructor(children: ChildrenType) {
+    this.children = children;
   }
 }
