@@ -1,102 +1,176 @@
-import { die, ID } from "./error.ts";
+import {
+  DivideArithmetic,
+  isIntegerToken,
+  MinusAtirhmetic,
+  MultiArithmetic,
+  PlusArithmetic,
+  type PossibleOperand,
+} from "./arithmetic.ts";
+import { ParseErrorKind } from "./error.ts";
 import { Scanner } from "./scanner.ts";
-import { isValidChar } from "./util.ts";
+import {
+  symbolDivide,
+  symbolMinus,
+  symbolMulti,
+  symbolNone,
+  symbolPlus,
+  type TokenKind,
+} from "./token.ts";
 
-class Context {
-  /**
-   * 待解析的字符串
-   */
-  #text: string;
-  /**
-   * 待解析的字符的索引
-   */
-  #index: number = 0;
-  /**
-   * 扫描器
-   */
+/**
+ * 保存解析过程中的上下文信息
+ */
+export class Context {
   #scanner: Scanner;
   /**
-   * 某个 token 的起始索引
+   * 左操作数
    */
-  #startIndex: number | null = null;
+  #leftOperand: PossibleOperand | null = null;
   /**
-   * 记录扫描是否结束
+   * 下一个要处理的 token
    */
-  #isFinished = false;
-  get hasFinished() {
-    return this.#isFinished;
-  }
+  #nextToken: TokenKind | null = null;
 
   constructor(text: string) {
-    this.#text = text;
-    this.#scanner = new Scanner(this);
+    this.#scanner = new Scanner(text);
   }
 
   /**
-   * 解析
+   * 解析为 ast
+   */
+  parseAst() {
+    while (true) {
+      let token;
+      if (this.#nextToken === null) {
+        token = this.#scanner.scan();
+      } else {
+        token = this.#nextToken;
+      }
+
+      if (token.type === symbolNone) {
+        break;
+      }
+
+      if (isIntegerToken(token)) {
+        if (this.#leftOperand === null) {
+          this.#leftOperand = token;
+          continue;
+        } else {
+          this.#scanner.createErrorForToken(
+            token,
+            ParseErrorKind.ArithmeticError,
+          );
+        }
+      }
+
+      if (this.#leftOperand === null) {
+        this.#scanner.createErrorForToken(
+          token,
+          ParseErrorKind.ArithmeticError,
+        );
+      }
+
+      const leftOperand = this.#leftOperand;
+      let arithmetic: PossibleOperand | null = null;
+
+      if (token.type === symbolPlus) {
+        const rightOperand = this.#parsePlusOrMinus();
+        arithmetic = new PlusArithmetic(leftOperand, rightOperand);
+      } else if (token.type === symbolMinus) {
+        const rightOperand = this.#parsePlusOrMinus();
+        arithmetic = new MinusAtirhmetic(leftOperand, rightOperand);
+      } else if (token.type === symbolMulti) {
+        const rightOperand = this.#parseMultiOrDivide();
+        arithmetic = new MultiArithmetic(leftOperand, rightOperand);
+      } else if (token.type === symbolDivide) {
+        const rightOperand = this.#parseMultiOrDivide();
+        arithmetic = new DivideArithmetic(leftOperand, rightOperand);
+      }
+
+      this.#leftOperand = arithmetic;
+    }
+
+    return this.#leftOperand;
+  }
+
+  /**
+   * 解析为值
    */
   parse() {
-    this.#scanner.scan();
-    return this.#scanner.token;
-  }
+    this.parseAst();
 
-  /**
-   * 开始读取 token，
-   * 记录该 token 的起始索引，
-   * 并返回当前索引处的字符
-   */
-  start() {
-    this.#startIndex = this.#index;
-    return this.getChar();
-  }
-
-  /**
-   * token 成功读取，
-   * 返回 token 的起始索引、结束索引、以及内容
-   */
-  stop() {
-    const start = this.#startIndex;
-    if (start === null) throw new Error(`调用${this.stop.name}之前，先调用${this.start.name}`);
-    const end = this.#index - 1;
-    const content = this.#text.substring(start, end + 1);
-    this.#startIndex = null;
-    if (end === this.#text.length - 1) {
-      this.#isFinished = true;
-    }
-
-    return {
-      start,
-      end,
-      content,
+    // 对生成的 ast 进行计算
+    if (isIntegerToken(this.#leftOperand)) {
+      return this.#leftOperand.value;
+    } else {
+      return this.#leftOperand?.evaluate();
     }
   }
 
   /**
-   * 向前移动索引
+   * 解析加减法的右操作数
    */
-  forward() {
-    if (this.#index >= this.#text.length - 1) {
-      this.#index = this.#text.length;
-      return false
-    }
+  #parsePlusOrMinus(): PossibleOperand {
+    const firstToken = this.#scanner.scan();
+    const secondToken = this.#scanner.scan();
 
-    this.#index++;
-    return true
+    if (isIntegerToken(firstToken)) {
+      if (
+        (secondToken.type === symbolPlus || secondToken.type === symbolMinus) ||
+        secondToken.type === symbolNone
+      ) {
+        this.#nextToken = secondToken;
+        return firstToken;
+      } else if (secondToken.type === symbolMulti) {
+        const rightOperand = this.#parseMultiOrDivide();
+        return new MultiArithmetic(firstToken, rightOperand);
+      } else if (secondToken.type === symbolDivide) {
+        const rightOperand = this.#parseMultiOrDivide();
+        return new DivideArithmetic(firstToken, rightOperand);
+      } else {
+        this.#scanner.createErrorForToken(
+          secondToken,
+          ParseErrorKind.ArithmeticError,
+        );
+      }
+    } else {
+      this.#scanner.createErrorForToken(
+        firstToken,
+        ParseErrorKind.ArithmeticError,
+      );
+    }
   }
 
   /**
-   * 获取当前索引处的合法字符
+   * 解析乘除法的右操作数
    */
-  getChar() {
-    const char = this.#text[this.#index];
-    if (!isValidChar(char)) {
-      die(ID.Invalid);
+  #parseMultiOrDivide(): PossibleOperand {
+    const firstToken = this.#scanner.scan();
+    const secondToken = this.#scanner.scan();
+    if (isIntegerToken(firstToken)) {
+      if (
+        secondToken.type === symbolPlus || secondToken.type === symbolMinus ||
+        secondToken.type === symbolNone
+      ) {
+        this.#nextToken = secondToken;
+        return firstToken;
+      } else if (secondToken.type === symbolMulti) {
+        const rightOperand = this.#parseMultiOrDivide();
+        return new MultiArithmetic(firstToken, rightOperand);
+      } else if (secondToken.type === symbolDivide) {
+        const rightOperand = this.#parseMultiOrDivide();
+        return new DivideArithmetic(firstToken, rightOperand);
+      } else {
+        this.#scanner.createErrorForToken(
+          firstToken,
+          ParseErrorKind.ArithmeticError,
+        );
+      }
+    } else {
+      this.#scanner.createErrorForToken(
+        firstToken,
+        ParseErrorKind.ArithmeticError,
+      );
     }
-
-    return char;
   }
-}
-
-export {
-  Context
 }

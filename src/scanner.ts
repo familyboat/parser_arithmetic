@@ -1,166 +1,216 @@
-import type { Context } from "./context.ts";
-import { die, ID } from "./error.ts";
-import { DivideToken, IntegerToken, LeftParenthesisToken, MinusToken, MultiToken, PlusToken, type PossibleToken, type ValueType } from "./token.ts";
-import { isBlank, isInteger, isLeftParenthesis, isMultiOrDivide, isNonZero, isOperator, isPlusOrMinus, isRightParenthesis, isZero } from "./util.ts";
+import { ParseError, ParseErrorKind } from "./error.ts";
+import {
+  DivideToken,
+  IntegerToken,
+  MinusToken,
+  MultiToken,
+  NoneToken,
+  PlusToken,
+  Range,
+  type TokenKind,
+} from "./token.ts";
 
-class Scanner {
-  #context: Context;
-  #tokens: Array<PossibleToken> = [];
-  get token() {
-    return this.#tokens;
-  }
+/**
+ * 扫描器，将文本转换为 token 流
+ */
+export class Scanner {
+  /**
+   * 待解析的文本
+   */
+  #text: string;
+  /**
+   * 字符索引
+   */
+  #charIndex: number;
+  /**
+   * token 的起始索引
+   */
+  #tokenStart: number;
 
-  constructor(context: Context) {
-    this.#context = context;
+  constructor(text: string) {
+    this.#text = text;
+    this.#charIndex = 0;
+    this.#tokenStart = 0;
   }
 
   /**
-   * 扫描
+   * 从待解析的字符串中扫描出一个 token
    */
-  scan() {
-    while (!this.#context.hasFinished) {
-      const char = this.#context.start();
-      if (isBlank(char)) {
-        this.#context.forward();
-        this.#context.stop();
-        continue;
-      }
-      if (isZero(char)) {
-        this.#parseZero();
-      } else if (isNonZero(char)) {
-        this.#parseNonZero();
-      } else if (isOperator(char)) {
-        this.#parseOperator();
-      } else if (isLeftParenthesis(char)) {
-        this.#parseLeftParenthesis();
-      } else if (isRightParenthesis(char)) {
-        this.#parseRightParenthesis();
-      }
+  scan(): TokenKind {
+    this.#skipWhitespace();
+    this.#tokenStart = this.#charIndex;
+    const currentChar = this.#currentChar();
+    if (this.#isEof()) {
+      return new NoneToken();
+    }
+    if (this.#isDigit()) {
+      return this.#parseInteger();
+    } else if (currentChar === "+") {
+      return this.#parsePlus();
+    } else if (currentChar === "-") {
+      return this.#parseMinus();
+    } else if (currentChar === "*") {
+      return this.#parseMulti();
+    } else if (currentChar === "/") {
+      return this.#parseDivide();
+    } else {
+      this.#createErrorForCurrentChar(ParseErrorKind.ValidError);
     }
   }
 
-  /**
-   * 解析数字 0
-   */
-  #parseZero() {
-    if (this.#context.forward()) {
-      const char = this.#context.getChar();
-      if (isLeftParenthesis(char) || isInteger(char)) {
-        die(ID.Zero);
-      }
-    }
-
-    const token = new IntegerToken({
-      ...this.#context.stop(),
-      value: 0,
-    })
-
-    this.#tokens.push(token);
-  }
-
-  /**
-   * 解析非 0 的数字
-   */
-  #parseNonZero() {
-    if (this.#context.forward()) {
-      let char = this.#context.getChar();
-      while(isInteger(char)) {
-        if (!this.#context.forward()) {
-          break;
-        }
-        char = this.#context.getChar();
-      }
-      if (isLeftParenthesis(char)) {
-        die(ID.NonZero);
-      }
-    }
-
-    const tokenOption = this.#context.stop();
-    const token = new IntegerToken({
-      ...tokenOption,
-      value: +tokenOption.content,
-    });
-    this.#tokens.push(token);
-  }
-
-  /**
-   * 解析运算符
-   */
-  #parseOperator() {
-    if (this.#context.forward()) {
-      const char = this.#context.getChar();
-      if (isRightParenthesis(char) || isOperator(char)) {
-        die(ID.Operator);
+  #parseInteger(): IntegerToken {
+    if (this.#isZero()) {
+      this.#moveNextChar();
+      const tokenEnd = this.#charIndex;
+      this.#skipWhitespace();
+      if (this.#isOperator() || this.#isEof()) {
+        const range = new Range(this.#tokenStart, tokenEnd);
+        return new IntegerToken("0", range);
+      } else {
+        this.#createErrorForStart(this.#tokenStart, ParseErrorKind.ZeroError);
       }
     } else {
-      die(ID.Operator)
+      this.#moveNextChar();
+      while (this.#isDigit()) {
+        this.#moveNextChar();
+      }
+      const tokenEnd = this.#charIndex;
+      this.#skipWhitespace();
+      if (this.#isOperator() || this.#isEof()) {
+        const range = new Range(this.#tokenStart, tokenEnd);
+        const content = this.#text.slice(this.#tokenStart, tokenEnd);
+        return new IntegerToken(content, range);
+      } else {
+        this.#createErrorForStart(
+          this.#tokenStart,
+          ParseErrorKind.NonZeroError,
+        );
+      }
     }
+  }
 
-    const tokenOption = this.#context.stop();
-    const operator: ValueType = tokenOption.content as ValueType;
-    let ctor;
-    if (operator === '+') {
-      ctor = PlusToken;
-    } else if (operator === '-') {
-      ctor = MinusToken
-    } else if (operator === '*') {
-      ctor = MultiToken
-    } else if (operator === '/') {
-      ctor = DivideToken;
+  #parsePlus(): PlusToken {
+    this.#moveNextChar();
+    const tokenEnd = this.#charIndex;
+    this.#skipWhitespace();
+    if (this.#isDigit()) {
+      const range = new Range(this.#tokenStart, tokenEnd);
+      return new PlusToken(range);
     } else {
-      die(ID.Default)
+      this.#createErrorForStart(this.#tokenStart, ParseErrorKind.OperatorError);
     }
+  }
 
-    const token = new ctor({
-      ...tokenOption,
-      value: operator,
-    });
+  #parseMinus(): MinusToken {
+    this.#moveNextChar();
+    const tokenEnd = this.#charIndex;
+    this.#skipWhitespace();
+    if (this.#isDigit()) {
+      const range = new Range(this.#tokenStart, tokenEnd);
+      return new MinusToken(range);
+    } else {
+      this.#createErrorForStart(this.#tokenStart, ParseErrorKind.OperatorError);
+    }
+  }
 
-    this.#tokens.push(token);
+  #parseMulti(): MultiToken {
+    this.#moveNextChar();
+    const tokenEnd = this.#charIndex;
+    this.#skipWhitespace();
+    if (this.#isDigit()) {
+      const range = new Range(this.#tokenStart, tokenEnd);
+      return new MultiToken(range);
+    } else {
+      this.#createErrorForStart(this.#tokenStart, ParseErrorKind.OperatorError);
+    }
+  }
+
+  #parseDivide(): DivideToken {
+    this.#moveNextChar();
+    const tokenEnd = this.#charIndex;
+    this.#skipWhitespace();
+    if (this.#isDigit()) {
+      const range = new Range(this.#tokenStart, tokenEnd);
+      return new DivideToken(range);
+    } else {
+      this.#createErrorForStart(this.#tokenStart, ParseErrorKind.OperatorError);
+    }
+  }
+
+  createErrorForToken(token: TokenKind, kind: ParseErrorKind): never {
+    const range = token.range;
+    this.#createErrorForRange(range, kind);
+  }
+
+  #createErrorForCurrentChar(kind: ParseErrorKind): never {
+    this.#createErrorForStart(this.#charIndex, kind);
+  }
+
+  #createErrorForStart(start: number, kind: ParseErrorKind): never {
+    const range = new Range(start, start + 1);
+    this.#createErrorForRange(range, kind);
+  }
+
+  #createErrorForRange(range: Range, kind: ParseErrorKind): never {
+    const error = new ParseError(range, kind, this.#text);
+    throw new Error(error.toString());
   }
 
   /**
-   * 解析左圆括号
+   * 获取当前字符
    */
-  #parseLeftParenthesis() {
-    if (this.#context.forward()) {
-      const char = this.#context.getChar();
-      if (isRightParenthesis(char) || isOperator(char)) {
-        die(ID.LeftParenthesis);
-      }
-    } else {
-      die(ID.LeftParenthesis)
+  #currentChar(): string | null {
+    if (this.#charIndex < this.#text.length) {
+      return this.#text[this.#charIndex];
     }
 
-    const token = new LeftParenthesisToken({
-      ...this.#context.stop(),
-      value: '(',
-    });
-
-    this.#tokens.push(token);
+    return null;
   }
 
   /**
-   * 解析右圆括号
+   * 索引移到下一个字符
    */
-  #parseRightParenthesis() {
-    if (this.#context.forward()) {
-      const char = this.#context.getChar();
-      if (isLeftParenthesis(char) || isInteger(char)) {
-        die(ID.RightParenthesis);
+  #moveNextChar() {
+    this.#charIndex++;
+  }
+
+  /**
+   * 跳过空格字符
+   */
+  #skipWhitespace() {
+    while ((this.#currentChar()) !== null) {
+      if (this.#isWhitespace()) {
+        this.#moveNextChar();
+      } else {
+        break;
       }
     }
+  }
 
-    const token = new LeftParenthesisToken({
-      ...this.#context.stop(),
-      value: ')',
-    });
+  #isWhitespace() {
+    return this.#currentChar() === " ";
+  }
 
-    this.#tokens.push(token);
+  #isDigit() {
+    return this.#isZero() || this.#isOneToNine();
+  }
+
+  #isZero() {
+    return this.#currentChar() === "0";
+  }
+
+  #isOneToNine() {
+    const currentChar = this.#currentChar();
+    return currentChar !== null &&
+      "1,2,3,4,5,6,7,8,9".split(",").includes(currentChar);
+  }
+
+  #isOperator() {
+    const currentChar = this.#currentChar();
+    return currentChar !== null && "+,-,*,/".split(",").includes(currentChar);
+  }
+
+  #isEof() {
+    return this.#currentChar() === null;
   }
 }
-
-export {
-  Scanner
-}
-

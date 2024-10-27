@@ -1,96 +1,134 @@
-export type ValueType = number | '+' | '-' | '*' | '/' | '(' | ')';
+export type TokenKind =
+  | IntegerToken
+  | PlusToken
+  | MinusToken
+  | MultiToken
+  | DivideToken
+  | NoneToken;
 
 interface Token {
   /**
-   * 起始位置，包含
+   * 原始内容
    */
-  start: number,
+  content: string;
   /**
-   * 终止位置，包含
+   * token 代表的值
    */
-  end: number,
+  value: number | "+" | "-" | "*" | "/" | "";
   /**
-   * 内容
+   * 标识 token 的类型
    */
-  content: string,
+  type: symbol;
   /**
-   * 内容代表的值
+   * 标识 token 的范围
    */
-  value: ValueType,
+  range: Range;
 }
 
-class BaseToken {
-  start: number;
-  end: number;
+/**
+ * 整数
+ */
+export class IntegerToken implements Token {
   content: string;
-  value: ValueType;
+  value: number;
+  type = symbolInteger;
+  range: Range;
 
-  constructor({start, end, content, value}: Token) {
+  constructor(content: string, range: Range) {
+    this.content = content;
+    this.value = +content;
+    this.range = range;
+  }
+}
+export const symbolInteger = Symbol.for("integer");
+
+/**
+ * 加号
+ */
+export class PlusToken implements Token {
+  content: "+" = "+";
+  value = this.content;
+  type = symbolPlus;
+  range: Range;
+
+  constructor(range: Range) {
+    this.range = range;
+  }
+}
+export const symbolPlus = Symbol.for("plus");
+
+/**
+ * 减号
+ */
+export class MinusToken implements Token {
+  content: "-" = "-";
+  value = this.content;
+  type = symbolMinus;
+  range: Range;
+
+  constructor(range: Range) {
+    this.range = range;
+  }
+}
+export const symbolMinus = Symbol.for("minus");
+
+/**
+ * 乘号
+ */
+export class MultiToken implements Token {
+  content: "*" = "*";
+  value = this.content;
+  type = symbolMulti;
+  range: Range;
+
+  constructor(range: Range) {
+    this.range = range;
+  }
+}
+export const symbolMulti = Symbol.for("multi");
+
+/**
+ * 除号
+ */
+export class DivideToken implements Token {
+  content: "/" = "/";
+  value = this.content;
+  type = symbolDivide;
+  range: Range;
+
+  constructor(range: Range) {
+    this.range = range;
+  }
+}
+export const symbolDivide = Symbol.for("divide");
+
+/**
+ * 表示解析结束
+ */
+export class NoneToken implements Token {
+  content: "" = "";
+  value = this.content;
+  type = symbolNone;
+  range = new Range(-1, -1);
+}
+export const symbolNone = Symbol.for("none");
+
+/**
+ * 表示 token 的范围
+ */
+export class Range {
+  /**
+   * 起始索引，包含
+   */
+  start: number;
+
+  /**
+   * 终止索引，不包含
+   */
+  end: number;
+
+  constructor(start: number, end: number) {
     this.start = start;
     this.end = end;
-    this.content = content;
-    this.value = value;
-  }
-
-  toString() {
-    return `${this.content}位于${this.start}到${this.end}，值为${this.value}`
   }
 }
-
-export class IntegerToken extends BaseToken {
-  type = Symbol.for('integer')
-
-  constructor(token: Token) {
-    super(token);
-  }
-}
-
-export class PlusToken extends BaseToken {
-  type = Symbol.for('plus');
-
-  constructor(token: Token) {
-    super(token);
-  }
-}
-
-export class MinusToken extends BaseToken {
-  type = Symbol.for('minus');
-
-  constructor(token: Token) {
-    super(token);
-  }
-}
-
-export class MultiToken extends BaseToken {
-  type = Symbol.for('multi');
-
-  constructor(token: Token) {
-    super(token);
-  }
-}
-
-export class DivideToken extends BaseToken {
-  type = Symbol.for('divide');
-
-  constructor(token: Token) {
-    super(token)
-  }
-}
-
-export class LeftParenthesisToken extends BaseToken {
-  type = Symbol.for('leftParenthesis');
-
-  constructor(token: Token) {
-    super(token);
-  }
-}
-
-export class RightParenthesisToken extends BaseToken {
-  type = Symbol.for('rightParenthesis');
-
-  constructor(token: Token) {
-    super(token);
-  }
-}
-
-export type PossibleToken = IntegerToken | PlusToken | MinusToken | MultiToken | DivideToken | LeftParenthesisToken | DivideToken;
