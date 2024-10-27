@@ -8,30 +8,35 @@ export type TokenKind =
 
 export function isIntegerToken(token: unknown): token is IntegerToken {
   return token !== null && typeof token === "object" &&
-    (token as Pick<Token, 'type'>).type === symbolInteger;
+    (token as Pick<Token, "type">).type === symbolInteger;
 }
 
 export function isPlusToken(token: unknown): token is PlusToken {
-  return token !== null && typeof token === 'object' && (token as Pick<Token, 'type'>).type === symbolPlus;
+  return token !== null && typeof token === "object" &&
+    (token as Pick<Token, "type">).type === symbolPlus;
 }
 
 export function isMinusToken(token: unknown): token is MinusToken {
-  return token !== null && typeof token === 'object' && (token as Pick<Token, 'type'>).type === symbolMinus;
+  return token !== null && typeof token === "object" &&
+    (token as Pick<Token, "type">).type === symbolMinus;
 }
 
 export function isMultiToken(token: unknown): token is MultiToken {
-  return token !== null && typeof token === 'object' && (token as Pick<Token, 'type'>).type === symbolMulti;
+  return token !== null && typeof token === "object" &&
+    (token as Pick<Token, "type">).type === symbolMulti;
 }
 
 export function isDivideToken(token: unknown): token is DivideToken {
-  return token !== null && typeof token === 'object' && (token as Pick<Token, 'type'>).type === symbolDivide;
+  return token !== null && typeof token === "object" &&
+    (token as Pick<Token, "type">).type === symbolDivide;
 }
 
 export function isNoneToken(token: unknown): token is NoneToken {
-  return  token !== null && typeof token === 'object' && (token as Pick<Token, 'type'>).type === symbolNone;
+  return token !== null && typeof token === "object" &&
+    (token as Pick<Token, "type">).type === symbolNone;
 }
 
-type ValueType =  number | "+" | "-" | "*" | "/" | "";
+type ValueType = number | "+" | "-" | "*" | "/" | "";
 
 interface Token {
   /**
@@ -56,7 +61,7 @@ interface Token {
   toJSON(): unknown;
 }
 
-class BaseToken<T extends ValueType> implements Token{
+class BaseToken<T extends ValueType> implements Token {
   content: string;
   value: T;
   type: symbol;
@@ -74,8 +79,8 @@ class BaseToken<T extends ValueType> implements Token{
       content: this.content,
       value: this.value,
       type: this.type,
-      range: this.range
-    }
+      range: this.range,
+    };
   }
 }
 
@@ -100,9 +105,9 @@ export const symbolInteger = Symbol.for("integer");
 /**
  * 加号
  */
-export class PlusToken extends BaseToken<'+'> {
+export class PlusToken extends BaseToken<"+"> {
   constructor(range: Range) {
-    super('+', '+', symbolPlus, range)
+    super("+", "+", symbolPlus, range);
   }
 }
 export const symbolPlus = Symbol.for("plus");
@@ -110,9 +115,9 @@ export const symbolPlus = Symbol.for("plus");
 /**
  * 减号
  */
-export class MinusToken extends BaseToken<'-'> {
+export class MinusToken extends BaseToken<"-"> {
   constructor(range: Range) {
-    super('-', '-', symbolMinus, range)
+    super("-", "-", symbolMinus, range);
   }
 }
 export const symbolMinus = Symbol.for("minus");
@@ -120,9 +125,9 @@ export const symbolMinus = Symbol.for("minus");
 /**
  * 乘号
  */
-export class MultiToken extends BaseToken<'*'> {
+export class MultiToken extends BaseToken<"*"> {
   constructor(range: Range) {
-    super('*', '*', symbolMulti, range)
+    super("*", "*", symbolMulti, range);
   }
 }
 export const symbolMulti = Symbol.for("multi");
@@ -130,9 +135,9 @@ export const symbolMulti = Symbol.for("multi");
 /**
  * 除号
  */
-export class DivideToken extends BaseToken<'/'> {
+export class DivideToken extends BaseToken<"/"> {
   constructor(range: Range) {
-    super('/', '/', symbolDivide, range)
+    super("/", "/", symbolDivide, range);
   }
 }
 export const symbolDivide = Symbol.for("divide");
@@ -140,9 +145,9 @@ export const symbolDivide = Symbol.for("divide");
 /**
  * 表示解析结束
  */
-export class NoneToken extends BaseToken<''> {
+export class NoneToken extends BaseToken<""> {
   constructor(range: Range) {
-    super('', '', symbolNone, range)
+    super("", "", symbolNone, range);
   }
 }
 export const symbolNone = Symbol.for("none");
@@ -156,7 +161,7 @@ export class Range {
    * 起始索引，包含
    */
   get start() {
-    return this.#start
+    return this.#start;
   }
 
   #end: number;
@@ -176,6 +181,6 @@ export class Range {
     return {
       start: this.#start,
       end: this.#end,
-    }
+    };
   }
 }

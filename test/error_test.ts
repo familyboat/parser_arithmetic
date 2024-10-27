@@ -15,7 +15,10 @@ Deno.test({
   fn() {
     const text = "0 +123+";
     const context = new Context(text);
-    assert.throws(context.parse, `Error: 解析operator过程中出现错误\n0 ++\n  ~`);
+    assert.throws(
+      context.parse,
+      `Error: 解析operator过程中出现错误\n0 ++\n  ~`,
+    );
   },
 });
 
@@ -24,6 +27,9 @@ Deno.test({
   fn() {
     const text = "0 ++";
     const context = new Context(text);
-    assert.throws(context.parse, `Error: 解析operator过程中出现错误\n0 ++\n  ~`);
+    assert.throws(
+      context.parse,
+      `Error: 解析operator过程中出现错误\n0 ++\n  ~`,
+    );
   },
 });

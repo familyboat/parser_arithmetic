@@ -59,8 +59,8 @@ class BaseArithmetic {
       children: {
         left: this.left,
         right: this.right,
-      }
-    }
+      },
+    };
   }
 
   prettyLeft() {
@@ -68,7 +68,9 @@ class BaseArithmetic {
   }
 
   prettyRight() {
-    return isIntegerToken(this.right) ? this.right.content : this.right.pretty();
+    return isIntegerToken(this.right)
+      ? this.right.content
+      : this.right.pretty();
   }
 }
 
@@ -87,11 +89,11 @@ export class PlusArithmetic extends BaseArithmetic implements Arithmetic {
   }
 
   override toString(): string {
-    return 'PlusArithmetic'
+    return "PlusArithmetic";
   }
 
   pretty(): string {
-    return `${this.prettyLeft()} + ${this.prettyRight()}`
+    return `${this.prettyLeft()} + ${this.prettyRight()}`;
   }
 }
 
@@ -110,11 +112,11 @@ export class MinusAtirhmetic extends BaseArithmetic implements Arithmetic {
   }
 
   override toString(): string {
-    return 'MinusAtirhmetic'
+    return "MinusAtirhmetic";
   }
 
   pretty(): string {
-    return `${this.prettyLeft()} - ${this.prettyRight()}`
+    return `${this.prettyLeft()} - ${this.prettyRight()}`;
   }
 }
 
@@ -133,11 +135,11 @@ export class MultiArithmetic extends BaseArithmetic implements Arithmetic {
   }
 
   override toString(): string {
-    return 'MultiArithmetic'
+    return "MultiArithmetic";
   }
 
   pretty(): string {
-    return `${this.prettyLeft()} * ${this.prettyRight()}`
+    return `${this.prettyLeft()} * ${this.prettyRight()}`;
   }
 }
 
@@ -156,10 +158,10 @@ export class DivideArithmetic extends BaseArithmetic implements Arithmetic {
   }
 
   override toString(): string {
-    return 'DivideArithmetic'
+    return "DivideArithmetic";
   }
 
   pretty(): string {
-    return `${this.prettyLeft()} / ${this.prettyRight()}`
+    return `${this.prettyLeft()} / ${this.prettyRight()}`;
   }
 }

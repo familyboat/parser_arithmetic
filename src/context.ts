@@ -8,7 +8,7 @@ import {
 import { ParseErrorKind } from "./error.ts";
 import { Scanner } from "./scanner.ts";
 import {
-isDivideToken,
+  isDivideToken,
   isIntegerToken,
   isMinusToken,
   isMultiToken,
@@ -100,7 +100,7 @@ export class Context {
     this.parseAst();
 
     // 对生成的 ast 进行计算
-    this.#leftOperand?.evaluate();
+    return this.#leftOperand?.evaluate();
   }
 
   /**
