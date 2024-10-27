@@ -153,7 +153,7 @@ export class Scanner {
 
   #createErrorForRange(range: Range, kind: ParseErrorKind): never {
     const error = new ParseError(range, kind, this.#text);
-    throw new Error(error.toString());
+    throw new Error(`${error}`);
   }
 
   /**
