@@ -41,7 +41,10 @@ export class Scanner {
     this.#tokenStart = this.#charIndex;
     const currentChar = this.#currentChar();
     if (this.#isEof()) {
-      return new NoneToken();
+      const start = this.#charIndex;
+      const end = start + 1;
+      const range = new Range(start, end)
+      return new NoneToken(range);
     }
     if (this.#isDigit()) {
       return this.#parseInteger();

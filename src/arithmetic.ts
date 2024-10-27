@@ -15,6 +15,7 @@ interface Arithmetic {
    * 对表达式进行求值
    */
   evaluate(): number;
+  toString(): string;
 }
 
 class BaseArithmetic {
@@ -47,6 +48,16 @@ class BaseArithmetic {
       ? this.right.value
       : this.right.evaluate();
   }
+
+  toJSON() {
+    return {
+      name: `${this}`,
+      children: {
+        left: this.left,
+        right: this.right,
+      }
+    }
+  }
 }
 
 /**
@@ -61,6 +72,10 @@ export class PlusArithmetic extends BaseArithmetic implements Arithmetic {
     const left = this.getLeft();
     const right = this.getRight();
     return left + right;
+  }
+
+  override toString(): string {
+    return 'PlusArithmetic'
   }
 }
 
@@ -77,6 +92,10 @@ export class MinusAtirhmetic extends BaseArithmetic implements Arithmetic {
     const right = this.getRight();
     return left - right;
   }
+
+  override toString(): string {
+    return 'MinusAtirhmetic'
+  }
 }
 
 /**
@@ -92,6 +111,10 @@ export class MultiArithmetic extends BaseArithmetic implements Arithmetic {
     const right = this.getRight();
     return left * right;
   }
+
+  override toString(): string {
+    return 'MultiArithmetic'
+  }
 }
 
 /**
@@ -106,5 +129,9 @@ export class DivideArithmetic extends BaseArithmetic implements Arithmetic {
     const left = this.getLeft();
     const right = this.getRight();
     return left / right;
+  }
+
+  override toString(): string {
+    return 'DivideArithmetic'
   }
 }

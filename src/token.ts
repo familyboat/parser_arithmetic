@@ -31,6 +31,8 @@ export function isNoneToken(token: unknown): token is NoneToken {
   return  token !== null && typeof token === 'object' && (token as Pick<Token, 'type'>).type === symbolNone;
 }
 
+type ValueType =  number | "+" | "-" | "*" | "/" | "";
+
 interface Token {
   /**
    * 原始内容
@@ -39,7 +41,7 @@ interface Token {
   /**
    * token 代表的值
    */
-  value: number | "+" | "-" | "*" | "/" | "";
+  value: ValueType;
   /**
    * 标识 token 的类型
    */
@@ -48,21 +50,41 @@ interface Token {
    * 标识 token 的范围
    */
   range: Range;
+  /**
+   * 转换为 JSON 结构化数据
+   */
+  toJSON(): unknown;
+}
+
+class BaseToken<T extends ValueType> implements Token{
+  content: string;
+  value: T;
+  type: symbol;
+  range: Range;
+
+  constructor(content: string, value: T, type: symbol, range: Range) {
+    this.content = content;
+    this.value = value;
+    this.type = type;
+    this.range = range;
+  }
+
+  toJSON() {
+    return {
+      content: this.content,
+      value: this.value,
+      type: this.type,
+      range: this.range
+    }
+  }
 }
 
 /**
  * 整数
  */
-export class IntegerToken implements Token {
-  content: string;
-  value: number;
-  type = symbolInteger;
-  range: Range;
-
+export class IntegerToken extends BaseToken<number> {
   constructor(content: string, range: Range) {
-    this.content = content;
-    this.value = +content;
-    this.range = range;
+    super(content, +content, symbolInteger, range);
   }
 }
 export const symbolInteger = Symbol.for("integer");
@@ -70,14 +92,9 @@ export const symbolInteger = Symbol.for("integer");
 /**
  * 加号
  */
-export class PlusToken implements Token {
-  content: "+" = "+";
-  value = this.content;
-  type = symbolPlus;
-  range: Range;
-
+export class PlusToken extends BaseToken<'+'> {
   constructor(range: Range) {
-    this.range = range;
+    super('+', '+', symbolPlus, range)
   }
 }
 export const symbolPlus = Symbol.for("plus");
@@ -85,14 +102,9 @@ export const symbolPlus = Symbol.for("plus");
 /**
  * 减号
  */
-export class MinusToken implements Token {
-  content: "-" = "-";
-  value = this.content;
-  type = symbolMinus;
-  range: Range;
-
+export class MinusToken extends BaseToken<'-'> {
   constructor(range: Range) {
-    this.range = range;
+    super('-', '-', symbolMinus, range)
   }
 }
 export const symbolMinus = Symbol.for("minus");
@@ -100,14 +112,9 @@ export const symbolMinus = Symbol.for("minus");
 /**
  * 乘号
  */
-export class MultiToken implements Token {
-  content: "*" = "*";
-  value = this.content;
-  type = symbolMulti;
-  range: Range;
-
+export class MultiToken extends BaseToken<'*'> {
   constructor(range: Range) {
-    this.range = range;
+    super('*', '*', symbolMulti, range)
   }
 }
 export const symbolMulti = Symbol.for("multi");
@@ -115,14 +122,9 @@ export const symbolMulti = Symbol.for("multi");
 /**
  * 除号
  */
-export class DivideToken implements Token {
-  content: "/" = "/";
-  value = this.content;
-  type = symbolDivide;
-  range: Range;
-
+export class DivideToken extends BaseToken<'/'> {
   constructor(range: Range) {
-    this.range = range;
+    super('/', '/', symbolDivide, range)
   }
 }
 export const symbolDivide = Symbol.for("divide");
@@ -130,11 +132,10 @@ export const symbolDivide = Symbol.for("divide");
 /**
  * 表示解析结束
  */
-export class NoneToken implements Token {
-  content: "" = "";
-  value = this.content;
-  type = symbolNone;
-  range = new Range(-1, -1);
+export class NoneToken extends BaseToken<''> {
+  constructor(range: Range) {
+    super('', '', symbolNone, range)
+  }
 }
 export const symbolNone = Symbol.for("none");
 
@@ -142,18 +143,31 @@ export const symbolNone = Symbol.for("none");
  * 表示 token 的范围
  */
 export class Range {
+  #start: number;
   /**
    * 起始索引，包含
    */
-  start: number;
+  get start() {
+    return this.#start
+  }
 
+  #end: number;
   /**
    * 终止索引，不包含
    */
-  end: number;
+  get end() {
+    return this.#end;
+  }
 
   constructor(start: number, end: number) {
-    this.start = start;
-    this.end = end;
+    this.#start = start;
+    this.#end = end;
+  }
+
+  toJSON() {
+    return {
+      start: this.#start,
+      end: this.#end,
+    }
   }
 }
