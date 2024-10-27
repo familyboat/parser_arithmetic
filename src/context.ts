@@ -1,6 +1,5 @@
 import {
   DivideArithmetic,
-  isIntegerToken,
   MinusAtirhmetic,
   MultiArithmetic,
   PlusArithmetic,
@@ -9,11 +8,12 @@ import {
 import { ParseErrorKind } from "./error.ts";
 import { Scanner } from "./scanner.ts";
 import {
-  symbolDivide,
-  symbolMinus,
-  symbolMulti,
-  symbolNone,
-  symbolPlus,
+isDivideToken,
+  isIntegerToken,
+  isMinusToken,
+  isMultiToken,
+  isNoneToken,
+  isPlusToken,
   type TokenKind,
 } from "./token.ts";
 
@@ -47,7 +47,7 @@ export class Context {
         token = this.#nextToken;
       }
 
-      if (token.type === symbolNone) {
+      if (isNoneToken(token)) {
         break;
       }
 
@@ -73,16 +73,16 @@ export class Context {
       const leftOperand = this.#leftOperand;
       let arithmetic: PossibleOperand | null = null;
 
-      if (token.type === symbolPlus) {
+      if (isPlusToken(token)) {
         const rightOperand = this.#parsePlusOrMinus();
         arithmetic = new PlusArithmetic(leftOperand, rightOperand);
-      } else if (token.type === symbolMinus) {
+      } else if (isMinusToken(token)) {
         const rightOperand = this.#parsePlusOrMinus();
         arithmetic = new MinusAtirhmetic(leftOperand, rightOperand);
-      } else if (token.type === symbolMulti) {
+      } else if (isMultiToken(token)) {
         const rightOperand = this.#parseMultiOrDivide();
         arithmetic = new MultiArithmetic(leftOperand, rightOperand);
-      } else if (token.type === symbolDivide) {
+      } else if (isDivideToken(token)) {
         const rightOperand = this.#parseMultiOrDivide();
         arithmetic = new DivideArithmetic(leftOperand, rightOperand);
       }
@@ -116,15 +116,15 @@ export class Context {
 
     if (isIntegerToken(firstToken)) {
       if (
-        (secondToken.type === symbolPlus || secondToken.type === symbolMinus) ||
-        secondToken.type === symbolNone
+        (isPlusToken(secondToken) || isMinusToken(secondToken)) ||
+        isNoneToken(secondToken)
       ) {
         this.#nextToken = secondToken;
         return firstToken;
-      } else if (secondToken.type === symbolMulti) {
+      } else if (isMultiToken(secondToken)) {
         const rightOperand = this.#parseMultiOrDivide();
         return new MultiArithmetic(firstToken, rightOperand);
-      } else if (secondToken.type === symbolDivide) {
+      } else if (isDivideToken(secondToken)) {
         const rightOperand = this.#parseMultiOrDivide();
         return new DivideArithmetic(firstToken, rightOperand);
       } else {
@@ -149,15 +149,15 @@ export class Context {
     const secondToken = this.#scanner.scan();
     if (isIntegerToken(firstToken)) {
       if (
-        secondToken.type === symbolPlus || secondToken.type === symbolMinus ||
-        secondToken.type === symbolNone
+        (isPlusToken(secondToken) || isMinusToken(secondToken)) ||
+        isNoneToken(secondToken)
       ) {
         this.#nextToken = secondToken;
         return firstToken;
-      } else if (secondToken.type === symbolMulti) {
+      } else if (isMultiToken(secondToken)) {
         const rightOperand = this.#parseMultiOrDivide();
         return new MultiArithmetic(firstToken, rightOperand);
-      } else if (secondToken.type === symbolDivide) {
+      } else if (isDivideToken(secondToken)) {
         const rightOperand = this.#parseMultiOrDivide();
         return new DivideArithmetic(firstToken, rightOperand);
       } else {

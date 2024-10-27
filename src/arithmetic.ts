@@ -1,5 +1,8 @@
-import { IntegerToken, symbolInteger } from "./token.ts";
+import { IntegerToken, isIntegerToken } from "./token.ts";
 
+/**
+ * +、-、*、/ 四种运算合法的操作数
+ */
 export type PossibleOperand =
   | IntegerToken
   | PlusArithmetic
@@ -7,17 +10,21 @@ export type PossibleOperand =
   | MultiArithmetic
   | DivideArithmetic;
 
-export function isIntegerToken(token: unknown): token is IntegerToken {
-  return typeof token === "object" &&
-    (token as { type: symbol }).type === symbolInteger;
-}
-
 interface Arithmetic {
+  /**
+   * 对表达式进行求值
+   */
   evaluate(): number;
 }
 
 class BaseArithmetic {
+  /**
+   * 表达式的左操作数
+   */
   left: PossibleOperand;
+  /**
+   * 表达式的右操作数
+   */
   right: PossibleOperand;
 
   constructor(left: PossibleOperand, right: PossibleOperand) {
@@ -25,10 +32,16 @@ class BaseArithmetic {
     this.right = right;
   }
 
+  /**
+   * 获取左操作数的值
+   */
   getLeft() {
     return isIntegerToken(this.left) ? this.left.value : this.left.evaluate();
   }
 
+  /**
+   * 获取右操作数的值
+   */
   getRight() {
     return isIntegerToken(this.right)
       ? this.right.value
@@ -36,6 +49,9 @@ class BaseArithmetic {
   }
 }
 
+/**
+ * 加法表达式
+ */
 export class PlusArithmetic extends BaseArithmetic implements Arithmetic {
   constructor(left: PossibleOperand, right: PossibleOperand) {
     super(left, right);
@@ -48,6 +64,9 @@ export class PlusArithmetic extends BaseArithmetic implements Arithmetic {
   }
 }
 
+/**
+ * 减法表达式
+ */
 export class MinusAtirhmetic extends BaseArithmetic implements Arithmetic {
   constructor(left: PossibleOperand, right: PossibleOperand) {
     super(left, right);
@@ -60,6 +79,9 @@ export class MinusAtirhmetic extends BaseArithmetic implements Arithmetic {
   }
 }
 
+/**
+ * 乘法表达式
+ */
 export class MultiArithmetic extends BaseArithmetic implements Arithmetic {
   constructor(left: PossibleOperand, right: PossibleOperand) {
     super(left, right);
@@ -72,6 +94,9 @@ export class MultiArithmetic extends BaseArithmetic implements Arithmetic {
   }
 }
 
+/**
+ * 除法表达式
+ */
 export class DivideArithmetic extends BaseArithmetic implements Arithmetic {
   constructor(left: PossibleOperand, right: PossibleOperand) {
     super(left, right);

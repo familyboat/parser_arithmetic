@@ -6,6 +6,31 @@ export type TokenKind =
   | DivideToken
   | NoneToken;
 
+export function isIntegerToken(token: unknown): token is IntegerToken {
+  return token !== null && typeof token === "object" &&
+    (token as Pick<Token, 'type'>).type === symbolInteger;
+}
+
+export function isPlusToken(token: unknown): token is PlusToken {
+  return token !== null && typeof token === 'object' && (token as Pick<Token, 'type'>).type === symbolPlus;
+}
+
+export function isMinusToken(token: unknown): token is MinusToken {
+  return token !== null && typeof token === 'object' && (token as Pick<Token, 'type'>).type === symbolMinus;
+}
+
+export function isMultiToken(token: unknown): token is MultiToken {
+  return token !== null && typeof token === 'object' && (token as Pick<Token, 'type'>).type === symbolMulti;
+}
+
+export function isDivideToken(token: unknown): token is DivideToken {
+  return token !== null && typeof token === 'object' && (token as Pick<Token, 'type'>).type === symbolDivide;
+}
+
+export function isNoneToken(token: unknown): token is NoneToken {
+  return  token !== null && typeof token === 'object' && (token as Pick<Token, 'type'>).type === symbolNone;
+}
+
 interface Token {
   /**
    * 原始内容
