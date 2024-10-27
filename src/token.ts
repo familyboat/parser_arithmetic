@@ -86,6 +86,14 @@ export class IntegerToken extends BaseToken<number> {
   constructor(content: string, range: Range) {
     super(content, +content, symbolInteger, range);
   }
+
+  pretty() {
+    return this.content;
+  }
+
+  evaluate() {
+    return this.value;
+  }
 }
 export const symbolInteger = Symbol.for("integer");
 

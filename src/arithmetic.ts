@@ -16,6 +16,10 @@ interface Arithmetic {
    */
   evaluate(): number;
   toString(): string;
+  /**
+   * 格式化
+   */
+  pretty(): string;
 }
 
 class BaseArithmetic {
@@ -58,6 +62,14 @@ class BaseArithmetic {
       }
     }
   }
+
+  prettyLeft() {
+    return isIntegerToken(this.left) ? this.left.content : this.left.pretty();
+  }
+
+  prettyRight() {
+    return isIntegerToken(this.right) ? this.right.content : this.right.pretty();
+  }
 }
 
 /**
@@ -76,6 +88,10 @@ export class PlusArithmetic extends BaseArithmetic implements Arithmetic {
 
   override toString(): string {
     return 'PlusArithmetic'
+  }
+
+  pretty(): string {
+    return `${this.prettyLeft()} + ${this.prettyRight()}`
   }
 }
 
@@ -96,6 +112,10 @@ export class MinusAtirhmetic extends BaseArithmetic implements Arithmetic {
   override toString(): string {
     return 'MinusAtirhmetic'
   }
+
+  pretty(): string {
+    return `${this.prettyLeft()} - ${this.prettyRight()}`
+  }
 }
 
 /**
@@ -115,6 +135,10 @@ export class MultiArithmetic extends BaseArithmetic implements Arithmetic {
   override toString(): string {
     return 'MultiArithmetic'
   }
+
+  pretty(): string {
+    return `${this.prettyLeft()} * ${this.prettyRight()}`
+  }
 }
 
 /**
@@ -133,5 +157,9 @@ export class DivideArithmetic extends BaseArithmetic implements Arithmetic {
 
   override toString(): string {
     return 'DivideArithmetic'
+  }
+
+  pretty(): string {
+    return `${this.prettyLeft()} / ${this.prettyRight()}`
   }
 }

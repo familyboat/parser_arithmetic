@@ -100,11 +100,7 @@ export class Context {
     this.parseAst();
 
     // 对生成的 ast 进行计算
-    if (isIntegerToken(this.#leftOperand)) {
-      return this.#leftOperand.value;
-    } else {
-      return this.#leftOperand?.evaluate();
-    }
+    this.#leftOperand?.evaluate();
   }
 
   /**
