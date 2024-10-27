@@ -38,7 +38,7 @@ export class Context {
   /**
    * 解析为 ast
    */
-  parseAst() {
+  parseAst(): PossibleOperand | null {
     while (true) {
       let token;
       if (this.#nextToken === null) {
@@ -96,7 +96,7 @@ export class Context {
   /**
    * 解析为值
    */
-  parse() {
+  parse(): number | undefined {
     this.parseAst();
 
     // 对生成的 ast 进行计算

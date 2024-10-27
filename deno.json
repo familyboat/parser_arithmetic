@@ -1,6 +1,9 @@
 {
+  "name": "@familyboat/arithmetic_parser",
+  "version": "0.1.0",
+  "exports": "./src/mod.ts",
   "tasks": {
-    "dev": "deno run --watch main.ts",
-    "test": "deno test --watch test/*"
-  }
+    "test": "deno test --watch test/"
+  },
+  "license": "MIT"
 }

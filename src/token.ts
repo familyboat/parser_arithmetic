@@ -74,7 +74,7 @@ class BaseToken<T extends ValueType> implements Token {
     this.range = range;
   }
 
-  toJSON() {
+  toJSON(): unknown {
     return {
       content: this.content,
       value: this.value,
@@ -92,11 +92,11 @@ export class IntegerToken extends BaseToken<number> {
     super(content, +content, symbolInteger, range);
   }
 
-  pretty() {
+  pretty(): string {
     return this.content;
   }
 
-  evaluate() {
+  evaluate(): number {
     return this.value;
   }
 }
@@ -160,7 +160,7 @@ export class Range {
   /**
    * 起始索引，包含
    */
-  get start() {
+  get start(): number {
     return this.#start;
   }
 
@@ -168,7 +168,7 @@ export class Range {
   /**
    * 终止索引，不包含
    */
-  get end() {
+  get end(): number {
     return this.#end;
   }
 
@@ -177,7 +177,7 @@ export class Range {
     this.#end = end;
   }
 
-  toJSON() {
+  toJSON(): unknown {
     return {
       start: this.#start,
       end: this.#end,

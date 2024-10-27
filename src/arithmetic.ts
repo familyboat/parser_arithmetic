@@ -1,4 +1,4 @@
-import { IntegerToken, isIntegerToken } from "./token.ts";
+import { type IntegerToken, isIntegerToken } from "./token.ts";
 
 /**
  * +、-、*、/ 四种运算合法的操作数
@@ -40,20 +40,20 @@ class BaseArithmetic {
   /**
    * 获取左操作数的值
    */
-  getLeft() {
+  getLeft(): number {
     return isIntegerToken(this.left) ? this.left.value : this.left.evaluate();
   }
 
   /**
    * 获取右操作数的值
    */
-  getRight() {
+  getRight(): number {
     return isIntegerToken(this.right)
       ? this.right.value
       : this.right.evaluate();
   }
 
-  toJSON() {
+  toJSON(): unknown {
     return {
       name: `${this}`,
       children: {
@@ -63,11 +63,11 @@ class BaseArithmetic {
     };
   }
 
-  prettyLeft() {
+  prettyLeft(): string {
     return isIntegerToken(this.left) ? this.left.content : this.left.pretty();
   }
 
-  prettyRight() {
+  prettyRight(): string {
     return isIntegerToken(this.right)
       ? this.right.content
       : this.right.pretty();
