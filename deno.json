@@ -1,9 +1,14 @@
 {
   "name": "@parser/arithmetic",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "exports": "./src/mod.ts",
   "tasks": {
     "test": "deno test --watch test/"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "fmt": {
+    "exclude": [
+      "*.md"
+    ]
+  }
 }
