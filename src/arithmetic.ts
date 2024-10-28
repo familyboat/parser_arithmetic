@@ -1,7 +1,4 @@
-import {
-  type IntegerToken,
-  isIntegerToken,
-} from "./token.ts";
+import { type IntegerToken, isIntegerToken } from "./token.ts";
 
 /**
  * +、-、*、/ 四种运算合法的操作数

@@ -52,11 +52,11 @@ export enum ParseErrorKind {
   /**
    * 解析左圆括号出错
    */
-  LeftParenthesisError = 'leftParenthesis',
+  LeftParenthesisError = "leftParenthesis",
   /**
    * 解析右圆括号出错
    */
-  RightParenthesisError = 'rightParenthesis',
+  RightParenthesisError = "rightParenthesis",
   /**
    * 解析合法字符出错
    */

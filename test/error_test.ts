@@ -9,7 +9,7 @@ Deno.test({
     try {
       context.parse();
     } catch (error: unknown) {
-      assert.equal(`${error}`, `Error: 解析zero过程中出现错误\n00\n~`)
+      assert.equal(`${error}`, `Error: 解析zero过程中出现错误\n00\n~`);
     }
   },
 });
@@ -22,7 +22,7 @@ Deno.test({
     try {
       context.parse();
     } catch (error: unknown) {
-      assert.equal(`${error}`, `Error: 解析zero过程中出现错误\n0 123\n~`)
+      assert.equal(`${error}`, `Error: 解析zero过程中出现错误\n0 123\n~`);
     }
   },
 });
@@ -35,7 +35,7 @@ Deno.test({
     try {
       context.parse();
     } catch (error: unknown) {
-      assert.equal(`${error}`, `Error: 解析zero过程中出现错误\n0(\n~`)
+      assert.equal(`${error}`, `Error: 解析zero过程中出现错误\n0(\n~`);
     }
   },
 });
@@ -48,7 +48,7 @@ Deno.test({
     try {
       context.parse();
     } catch (error: unknown) {
-      assert.equal(`${error}`, `Error: 解析zero过程中出现错误\n(0)\n ~`)
+      assert.equal(`${error}`, `Error: 解析zero过程中出现错误\n(0)\n ~`);
     }
   },
 });
@@ -61,7 +61,10 @@ Deno.test({
     try {
       context.parse();
     } catch (error: unknown) {
-      assert.equal(`${error}`, `Error: 解析operator过程中出现错误\n0 +123+\n      ~`)
+      assert.equal(
+        `${error}`,
+        `Error: 解析operator过程中出现错误\n0 +123+\n      ~`,
+      );
     }
   },
 });
@@ -74,7 +77,7 @@ Deno.test({
     try {
       context.parse();
     } catch (error: unknown) {
-      assert.equal(`${error}`, `Error: 解析operator过程中出现错误\n0 ++\n  ~`)
+      assert.equal(`${error}`, `Error: 解析operator过程中出现错误\n0 ++\n  ~`);
     }
   },
 });
@@ -87,7 +90,7 @@ Deno.test({
     try {
       context.parse();
     } catch (error: unknown) {
-      assert.equal(`${error}`, `Error: 解析operator过程中出现错误\n++\n~`)
+      assert.equal(`${error}`, `Error: 解析operator过程中出现错误\n++\n~`);
     }
   },
 });

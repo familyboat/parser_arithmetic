@@ -60,10 +60,9 @@ export class Scanner {
       return this.#parseDivide();
     } else if (currentChar === "(") {
       return this.#parseLeftParenthesis();
-    } else if (currentChar === ')') {
+    } else if (currentChar === ")") {
       return this.#parseRightParenthesis();
-    }
-    else {
+    } else {
       this.#createErrorForCurrentChar(ParseErrorKind.ValidError);
     }
   }
@@ -147,7 +146,7 @@ export class Scanner {
     }
   }
 
-  #parseLeftParenthesis(): IntegerToken | LeftParenthesisToken{
+  #parseLeftParenthesis(): IntegerToken | LeftParenthesisToken {
     this.#moveNextChar();
     this.#skipWhitespace();
     const currentChar = this.#currentChar();
@@ -213,8 +212,7 @@ export class Scanner {
     } else if (this.#isDigit() || this.#isLeftParenthesis()) {
       const range = new Range(this.#tokenStart, this.#tokenStart + 1);
       return new LeftParenthesisToken(range);
-    } 
-    else {
+    } else {
       this.#createErrorForStart(
         this.#tokenStart,
         ParseErrorKind.LeftParenthesisError,
@@ -229,7 +227,10 @@ export class Scanner {
       const range = new Range(this.#tokenStart, this.#tokenStart + 1);
       return new RightParenthesisToken(range);
     } else {
-      this.#createErrorForStart(this.#tokenStart, ParseErrorKind.RightParenthesisError);
+      this.#createErrorForStart(
+        this.#tokenStart,
+        ParseErrorKind.RightParenthesisError,
+      );
     }
   }
 

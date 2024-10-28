@@ -69,8 +69,8 @@ export class Context {
 
       // 解析到的第一个 token，且该 token 为数字
       if (isIntegerToken(token) && leftOperand === null) {
-          leftOperand = token;
-          continue;
+        leftOperand = token;
+        continue;
       }
 
       // 解析到的第一个 token，且该 token 为左圆括号
@@ -98,11 +98,14 @@ export class Context {
       } else if (isMultiToken(token) || isDivideToken(token)) {
         arithmetic = this.#parseAllMultiOrDivide(leftOperand, token);
       } else {
-        this.#scanner.createErrorForToken(token, ParseErrorKind.ArithmeticError)
+        this.#scanner.createErrorForToken(
+          token,
+          ParseErrorKind.ArithmeticError,
+        );
       }
 
       leftOperand = arithmetic;
-      console.assert(leftOperand !== null, '表达式解析出错')
+      console.assert(leftOperand !== null, "表达式解析出错");
     }
 
     return leftOperand as unknown as PossibleOperand;
@@ -155,12 +158,11 @@ export class Context {
       const leftOperand = this.#parseParenthesis();
       const nextToken = this.#scanner.scan();
       if (isMultiToken(nextToken) || isDivideToken(nextToken)) {
-        return this.#parseAllMultiOrDivide(leftOperand, nextToken)
+        return this.#parseAllMultiOrDivide(leftOperand, nextToken);
       }
       this.#nextToken = nextToken;
-      return leftOperand
-    }
-    else {
+      return leftOperand;
+    } else {
       this.#scanner.createErrorForToken(
         firstToken,
         ParseErrorKind.ArithmeticError,
