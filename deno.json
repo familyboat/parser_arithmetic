@@ -1,6 +1,6 @@
 {
   "name": "@parser/arithmetic",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "exports": "./src/mod.ts",
   "tasks": {
     "test": "deno test --watch test/"
