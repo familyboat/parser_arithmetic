@@ -56,6 +56,8 @@ export class Scanner {
       return this.#parseMulti();
     } else if (currentChar === "/") {
       return this.#parseDivide();
+    } else if (currentChar === '(') {
+      return this.#parseLeftParenthesis();
     } else {
       this.#createErrorForCurrentChar(ParseErrorKind.ValidError);
     }
@@ -96,7 +98,7 @@ export class Scanner {
     this.#moveNextChar();
     const tokenEnd = this.#charIndex;
     this.#skipWhitespace();
-    if (this.#isDigit()) {
+    if (this.#isDigit() || this.#isLeftParenthesis()) {
       const range = new Range(this.#tokenStart, tokenEnd);
       return new PlusToken(range);
     } else {
@@ -108,7 +110,7 @@ export class Scanner {
     this.#moveNextChar();
     const tokenEnd = this.#charIndex;
     this.#skipWhitespace();
-    if (this.#isDigit()) {
+    if (this.#isDigit() || this.#isLeftParenthesis()) {
       const range = new Range(this.#tokenStart, tokenEnd);
       return new MinusToken(range);
     } else {
@@ -120,7 +122,7 @@ export class Scanner {
     this.#moveNextChar();
     const tokenEnd = this.#charIndex;
     this.#skipWhitespace();
-    if (this.#isDigit()) {
+    if (this.#isDigit() || this.#isLeftParenthesis()) {
       const range = new Range(this.#tokenStart, tokenEnd);
       return new MultiToken(range);
     } else {
@@ -132,13 +134,66 @@ export class Scanner {
     this.#moveNextChar();
     const tokenEnd = this.#charIndex;
     this.#skipWhitespace();
-    if (this.#isDigit()) {
+    if (this.#isDigit() || this.#isLeftParenthesis()) {
       const range = new Range(this.#tokenStart, tokenEnd);
       return new DivideToken(range);
     } else {
       this.#createErrorForStart(this.#tokenStart, ParseErrorKind.OperatorError);
     }
   }
+
+  #parseLeftParenthesis(): IntegerToken {
+    this.#moveNextChar();
+    this.#skipWhitespace();
+    const currentChar = this.#currentChar();
+    if (currentChar === '+' || currentChar === '-') {
+      const type = currentChar === '+' ? 'positive' : 'negtive';
+      this.#moveNextChar();
+      if (this.#isZero()) {
+        this.#moveNextChar();
+        this.#skipWhitespace();
+        const endChar = this.#currentChar();
+
+        this.#moveNextChar();
+        const tokenEnd = this.#charIndex;
+        this.#skipWhitespace();
+
+        if (endChar === ')' && (this.#isOperator() || this.#isEof())) {
+          const range = new Range(this.#tokenStart, tokenEnd);
+          return new IntegerToken(this.#text.slice(this.#tokenStart, tokenEnd), range, type);
+        } else {
+          this.#createErrorForStart(this.#tokenStart, ParseErrorKind.SignedIntegerError);
+        }
+      } else if (this.#isOneToNine()) {
+        this.#moveNextChar() 
+        while (this.#isDigit()) {
+          this.#moveNextChar();
+        }
+
+        this.#skipWhitespace();
+        const maybeTokenEndChar = this.#currentChar();
+
+        this.#moveNextChar();
+        const maybeTokenEnd = this.#charIndex;
+        this.#skipWhitespace();
+
+        if (maybeTokenEndChar === ')' && (this.#isOperator() || this.#isEof())) {
+          const range = new Range(this.#tokenStart, maybeTokenEnd);
+          return new IntegerToken(this.#text.slice(this.#tokenStart, maybeTokenEnd), range, type);
+        } else {
+          this.#createErrorForStart(this.#tokenStart, ParseErrorKind.SignedIntegerError);
+        }
+      } else {
+        this.#createErrorForStart(this.#tokenStart, ParseErrorKind.SignedIntegerError);
+      }
+    } else {
+      this.#createErrorForStart(this.#tokenStart, ParseErrorKind.SignedIntegerError)
+    }
+  }
+
+  // #parseRightParenthesis(): RightParenthesisToken {
+
+  // }
 
   createErrorForToken(token: TokenKind, kind: ParseErrorKind): never {
     const range = token.range;
@@ -215,5 +270,9 @@ export class Scanner {
 
   #isEof() {
     return this.#currentChar() === null;
+  }
+
+  #isLeftParenthesis() {
+    return this.#currentChar() === '('
   }
 }

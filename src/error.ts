@@ -42,6 +42,10 @@ export enum ParseErrorKind {
    */
   NonZeroError = "nonZero",
   /**
+   * 解析正负数出错
+   */
+  SignedIntegerError = 'signedInteger',
+  /**
    * 解析运算符出错，运算符的后面不允许接运算符，可以接空格、整数
    */
   OperatorError = "operator",
