@@ -11,12 +11,18 @@ export type OperatorTokenKind =
   | MultiToken
   | DivideToken;
 
-export function isLeftParenthesisToken(token: unknown): token is LeftParenthesisToken {
-  return token !== null && typeof token === 'object' && (token as Pick<Token, 'type'>).type === symbolLeftParenthesis;
+export function isLeftParenthesisToken(
+  token: unknown,
+): token is LeftParenthesisToken {
+  return token !== null && typeof token === "object" &&
+    (token as Pick<Token, "type">).type === symbolLeftParenthesis;
 }
 
-export function isRightParenthesisToken(token: unknown): token is RightParenthesisToken {
-  return token !== null && typeof token === 'object' && (token as Pick<Token, 'type'>).type === symbolRightParenthesis;
+export function isRightParenthesisToken(
+  token: unknown,
+): token is RightParenthesisToken {
+  return token !== null && typeof token === "object" &&
+    (token as Pick<Token, "type">).type === symbolRightParenthesis;
 }
 
 export function isOperatorToken(token: unknown): token is OperatorTokenKind {
@@ -102,33 +108,37 @@ class BaseToken<T extends ValueType> implements Token {
   }
 }
 
-type IntegerType = 'integer' | 'positive' | 'negtive';
+type IntegerType = "integer" | "positive" | "negtive";
 /**
  * 整数
  */
 export class IntegerToken extends BaseToken<number> {
   integerType: IntegerType;
 
-  constructor(content: string, range: Range, integerType: IntegerType = 'integer') {
-    let value: number
+  constructor(
+    content: string,
+    range: Range,
+    integerType: IntegerType = "integer",
+  ) {
+    let value: number;
     const contentLength = content.length;
-    if (integerType === 'integer') {
+    if (integerType === "integer") {
       value = +content;
     } else {
       value = +(content.slice(1, contentLength - 1));
       console.log(value, content);
     }
     super(content, value, symbolInteger, range);
-    this.integerType = integerType
+    this.integerType = integerType;
   }
 
   pretty(): string {
-    if (this.integerType === 'integer') {
+    if (this.integerType === "integer") {
       return this.content;
-    } else if (this.integerType === 'positive') {
-      return `( +${this.value} )`
+    } else if (this.integerType === "positive") {
+      return `( +${this.value} )`;
     } else {
-      return `( ${this.value} )`
+      return `( ${this.value} )`;
     }
   }
 
@@ -192,22 +202,22 @@ const symbolNone = Symbol.for("none");
 /**
  * 表示左圆括号
  */
-export class LeftParenthesisToken extends BaseToken<'('> {
+export class LeftParenthesisToken extends BaseToken<"("> {
   constructor(range: Range) {
-    super('(', '(', symbolLeftParenthesis, range);
+    super("(", "(", symbolLeftParenthesis, range);
   }
 }
-const symbolLeftParenthesis = Symbol.for('leftParenthesis');
+const symbolLeftParenthesis = Symbol.for("leftParenthesis");
 
 /**
  * 表示右圆括号
  */
-export class RightParenthesisToken extends BaseToken<')'> {
+export class RightParenthesisToken extends BaseToken<")"> {
   constructor(range: Range) {
-    super(')', ')', symbolRightParenthesis, range);
+    super(")", ")", symbolRightParenthesis, range);
   }
 }
-const symbolRightParenthesis = Symbol.for('rightParenthesis');
+const symbolRightParenthesis = Symbol.for("rightParenthesis");
 
 /**
  * 表示 token 的范围

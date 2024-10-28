@@ -36,7 +36,10 @@ Deno.test({
   fn() {
     const text = "(0)";
     const context = new Context(text);
-    assert.throws(context.parse, `Error: 解析signedInteger过程中出现错误\n(0)\n~`);
+    assert.throws(
+      context.parse,
+      `Error: 解析signedInteger过程中出现错误\n(0)\n~`,
+    );
   },
 });
 

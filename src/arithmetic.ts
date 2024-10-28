@@ -1,4 +1,9 @@
-import { type IntegerToken, isIntegerToken, type NoneToken, type TokenKind } from "./token.ts";
+import {
+  type IntegerToken,
+  isIntegerToken,
+  type NoneToken,
+  type TokenKind,
+} from "./token.ts";
 
 /**
  * +、-、*、/ 四种运算合法的操作数
@@ -166,7 +171,9 @@ export class DivideArithmetic extends BaseArithmetic implements Arithmetic {
   }
 }
 
-type ChildrenType = Array<Exclude<TokenKind, NoneToken> | ParenthesisArithmetic>
+type ChildrenType = Array<
+  Exclude<TokenKind, NoneToken> | ParenthesisArithmetic
+>;
 
 /**
  * 圆括号表达式

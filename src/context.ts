@@ -7,6 +7,8 @@ import {
 } from "./arithmetic.ts";
 import { ParseErrorKind } from "./error.ts";
 import { Scanner } from "./scanner.ts";
+import type { DivideToken } from "./token.ts";
+import type { MultiToken } from "./token.ts";
 import {
   isDivideToken,
   isIntegerToken,
@@ -47,6 +49,7 @@ export class Context {
         token = this.#scanner.scan();
       } else {
         token = this.#nextToken;
+        this.#nextToken = null;
       }
 
       if (isNoneToken(token)) {
@@ -81,12 +84,8 @@ export class Context {
       } else if (isMinusToken(token)) {
         const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide(token);
         arithmetic = new MinusAtirhmetic(leftOperand, rightOperand);
-      } else if (isMultiToken(token)) {
-        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide(token);
-        arithmetic = new MultiArithmetic(leftOperand, rightOperand);
-      } else if (isDivideToken(token)) {
-        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide(token);
-        arithmetic = new DivideArithmetic(leftOperand, rightOperand);
+      } else if (isMultiToken(token) || isDivideToken(token)) {
+        arithmetic = this.#parseAllMultiOrDivide(leftOperand, token);
       }
 
       this.#leftOperand = arithmetic;
@@ -111,7 +110,13 @@ export class Context {
   #parsePlusOrMinusOrMultiOrDivide(
     previousToken: OperatorTokenKind,
   ): PossibleOperand {
+    /**
+     * 应该为数字类型的 token
+     */
     const firstToken = this.#scanner.scan();
+    /**
+     * 应该为运算符类型的 token 或者解析结束的 token
+     */
     const secondToken = this.#scanner.scan();
 
     if (isIntegerToken(firstToken)) {
@@ -122,12 +127,8 @@ export class Context {
       ) {
         this.#nextToken = secondToken;
         return firstToken;
-      } else if (isMultiToken(secondToken)) {
-        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide(secondToken);
-        return new MultiArithmetic(firstToken, rightOperand);
-      } else if (isDivideToken(secondToken)) {
-        const rightOperand = this.#parsePlusOrMinusOrMultiOrDivide(secondToken);
-        return new DivideArithmetic(firstToken, rightOperand);
+      } else if (isMultiToken(secondToken) || isDivideToken(secondToken)) {
+        return this.#parseAllMultiOrDivide(firstToken, secondToken);
       } else {
         this.#scanner.createErrorForToken(
           secondToken,
@@ -143,16 +144,52 @@ export class Context {
   }
 
   /**
+   * 解析乘除法表达式，直到遇到加减法或者解析结束
+   */
+  #parseAllMultiOrDivide(
+    left: PossibleOperand,
+    operator: Extract<TokenKind, MultiToken | DivideToken>,
+  ): PossibleOperand {
+    this.#nextToken = operator;
+
+    let Ctor: typeof MultiArithmetic | typeof DivideArithmetic;
+    let rightOperand: PossibleOperand;
+    let maybeLeft = left;
+
+    do {
+      Ctor = isMultiToken(this.#nextToken) ? MultiArithmetic : DivideArithmetic;
+      rightOperand = this.#parsePlusOrMinusOrMultiOrDivide(this.#nextToken);
+      maybeLeft = new Ctor(maybeLeft, rightOperand);
+    } while (
+      isMultiToken(this.#nextToken) || isDivideToken(this.#nextToken)
+    );
+
+    const maybe = maybeLeft;
+    return maybe;
+  }
+
+  /**
    * 判断两个运算符的等级
    * a 大于等于 b，返回 true。例如：a 是乘法，b 是加法
    */
   #compareOperatorLevel(a: OperatorTokenKind, b: OperatorTokenKind) {
-    if (isPlusToken(b) || isMinusToken(b)) return true;
-    if (
-      (isMultiToken(a) || isDivideToken(a)) &&
-      (isMultiToken(b) || isDivideToken(b))
-    ) return true;
-
-    return false;
+    return compareOperatorLevel(a, b);
   }
+}
+
+/**
+ * 判断两个运算符的等级
+ * a 大于等于 b，返回 true。例如：a 是乘法，b 是加法
+ */
+export function compareOperatorLevel(
+  a: OperatorTokenKind,
+  b: OperatorTokenKind,
+) {
+  if (isPlusToken(b) || isMinusToken(b)) return true;
+  if (
+    (isMultiToken(a) || isDivideToken(a)) &&
+    (isMultiToken(b) || isDivideToken(b))
+  ) return true;
+
+  return false;
 }

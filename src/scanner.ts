@@ -56,7 +56,7 @@ export class Scanner {
       return this.#parseMulti();
     } else if (currentChar === "/") {
       return this.#parseDivide();
-    } else if (currentChar === '(') {
+    } else if (currentChar === "(") {
       return this.#parseLeftParenthesis();
     } else {
       this.#createErrorForCurrentChar(ParseErrorKind.ValidError);
@@ -146,8 +146,8 @@ export class Scanner {
     this.#moveNextChar();
     this.#skipWhitespace();
     const currentChar = this.#currentChar();
-    if (currentChar === '+' || currentChar === '-') {
-      const type = currentChar === '+' ? 'positive' : 'negtive';
+    if (currentChar === "+" || currentChar === "-") {
+      const type = currentChar === "+" ? "positive" : "negtive";
       this.#moveNextChar();
       if (this.#isZero()) {
         this.#moveNextChar();
@@ -158,14 +158,21 @@ export class Scanner {
         const tokenEnd = this.#charIndex;
         this.#skipWhitespace();
 
-        if (endChar === ')' && (this.#isOperator() || this.#isEof())) {
+        if (endChar === ")" && (this.#isOperator() || this.#isEof())) {
           const range = new Range(this.#tokenStart, tokenEnd);
-          return new IntegerToken(this.#text.slice(this.#tokenStart, tokenEnd), range, type);
+          return new IntegerToken(
+            this.#text.slice(this.#tokenStart, tokenEnd),
+            range,
+            type,
+          );
         } else {
-          this.#createErrorForStart(this.#tokenStart, ParseErrorKind.SignedIntegerError);
+          this.#createErrorForStart(
+            this.#tokenStart,
+            ParseErrorKind.SignedIntegerError,
+          );
         }
       } else if (this.#isOneToNine()) {
-        this.#moveNextChar() 
+        this.#moveNextChar();
         while (this.#isDigit()) {
           this.#moveNextChar();
         }
@@ -177,17 +184,32 @@ export class Scanner {
         const maybeTokenEnd = this.#charIndex;
         this.#skipWhitespace();
 
-        if (maybeTokenEndChar === ')' && (this.#isOperator() || this.#isEof())) {
+        if (
+          maybeTokenEndChar === ")" && (this.#isOperator() || this.#isEof())
+        ) {
           const range = new Range(this.#tokenStart, maybeTokenEnd);
-          return new IntegerToken(this.#text.slice(this.#tokenStart, maybeTokenEnd), range, type);
+          return new IntegerToken(
+            this.#text.slice(this.#tokenStart, maybeTokenEnd),
+            range,
+            type,
+          );
         } else {
-          this.#createErrorForStart(this.#tokenStart, ParseErrorKind.SignedIntegerError);
+          this.#createErrorForStart(
+            this.#tokenStart,
+            ParseErrorKind.SignedIntegerError,
+          );
         }
       } else {
-        this.#createErrorForStart(this.#tokenStart, ParseErrorKind.SignedIntegerError);
+        this.#createErrorForStart(
+          this.#tokenStart,
+          ParseErrorKind.SignedIntegerError,
+        );
       }
     } else {
-      this.#createErrorForStart(this.#tokenStart, ParseErrorKind.SignedIntegerError)
+      this.#createErrorForStart(
+        this.#tokenStart,
+        ParseErrorKind.SignedIntegerError,
+      );
     }
   }
 
@@ -273,6 +295,6 @@ export class Scanner {
   }
 
   #isLeftParenthesis() {
-    return this.#currentChar() === '('
+    return this.#currentChar() === "(";
   }
 }
