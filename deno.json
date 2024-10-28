@@ -1,5 +1,5 @@
 {
-  "name": "@familyboat/arithmetic_parser",
+  "name": "@parser/arithmetic",
   "version": "0.1.0",
   "exports": "./src/mod.ts",
   "tasks": {
