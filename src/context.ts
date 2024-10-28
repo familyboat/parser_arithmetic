@@ -9,6 +9,8 @@ import { ParseErrorKind } from "./error.ts";
 import { Scanner } from "./scanner.ts";
 import type { DivideToken } from "./token.ts";
 import type { MultiToken } from "./token.ts";
+import { isRightParenthesisToken } from "./token.ts";
+import { isLeftParenthesisToken } from "./token.ts";
 import {
   isDivideToken,
   isIntegerToken,
@@ -27,13 +29,13 @@ import {
 export class Context {
   #scanner: Scanner;
   /**
-   * 左操作数
-   */
-  #leftOperand: PossibleOperand | null = null;
-  /**
    * 下一个要处理的 token
    */
   #nextToken: TokenKind | null = null;
+  /**
+   * 记录圆括号的层级
+   */
+  #stack = 0;
 
   constructor(text: string) {
     this.#scanner = new Scanner(text);
@@ -42,7 +44,9 @@ export class Context {
   /**
    * 解析为 ast
    */
-  parseAst(): PossibleOperand | null {
+  parseAst(): PossibleOperand {
+    let leftOperand: PossibleOperand | null = null;
+
     while (true) {
       let token;
       if (this.#nextToken === null) {
@@ -52,30 +56,37 @@ export class Context {
         this.#nextToken = null;
       }
 
+      // 解析到结束 token，解析过程结束
       if (isNoneToken(token)) {
         break;
       }
 
-      if (isIntegerToken(token)) {
-        if (this.#leftOperand === null) {
-          this.#leftOperand = token;
-          continue;
-        } else {
-          this.#scanner.createErrorForToken(
-            token,
-            ParseErrorKind.ArithmeticError,
-          );
-        }
+      // 解析到圆括号表达的右圆括号，圆括号表达式解析结束
+      if ((isRightParenthesisToken(token) && this.#stack > 0)) {
+        this.#stack--;
+        break;
       }
 
-      if (this.#leftOperand === null) {
+      // 解析到的第一个 token，且该 token 为数字
+      if (isIntegerToken(token) && leftOperand === null) {
+          leftOperand = token;
+          continue;
+      }
+
+      // 解析到的第一个 token，且该 token 为左圆括号
+      if (isLeftParenthesisToken(token)) {
+        leftOperand = this.#parseParenthesis();
+        continue;
+      }
+
+      // 开始解析运算符类型的 token，此时应该已经有运算符所需的左操作数
+      if (leftOperand === null) {
         this.#scanner.createErrorForToken(
           token,
           ParseErrorKind.ArithmeticError,
         );
       }
 
-      const leftOperand = this.#leftOperand;
       let arithmetic: PossibleOperand | null = null;
 
       if (isPlusToken(token)) {
@@ -86,22 +97,25 @@ export class Context {
         arithmetic = new MinusAtirhmetic(leftOperand, rightOperand);
       } else if (isMultiToken(token) || isDivideToken(token)) {
         arithmetic = this.#parseAllMultiOrDivide(leftOperand, token);
+      } else {
+        this.#scanner.createErrorForToken(token, ParseErrorKind.ArithmeticError)
       }
 
-      this.#leftOperand = arithmetic;
+      leftOperand = arithmetic;
+      console.assert(leftOperand !== null, '表达式解析出错')
     }
 
-    return this.#leftOperand;
+    return leftOperand as unknown as PossibleOperand;
   }
 
   /**
    * 解析为值
    */
   parse(): number | undefined {
-    this.parseAst();
+    const leftOperand = this.parseAst();
 
     // 对生成的 ast 进行计算
-    return this.#leftOperand?.evaluate();
+    return leftOperand.evaluate();
   }
 
   /**
@@ -111,16 +125,17 @@ export class Context {
     previousToken: OperatorTokenKind,
   ): PossibleOperand {
     /**
-     * 应该为数字类型的 token
+     * 应该为数字类型的 token 或者左圆括号 token
      */
     const firstToken = this.#scanner.scan();
     /**
-     * 应该为运算符类型的 token 或者解析结束的 token
+     * 应该为运算符类型的 token 或者解析结束的 token 或者右圆括号 token
      */
     const secondToken = this.#scanner.scan();
 
     if (isIntegerToken(firstToken)) {
       if (
+        isRightParenthesisToken(secondToken) ||
         isNoneToken(secondToken) ||
         (isOperatorToken(secondToken) &&
           this.#compareOperatorLevel(previousToken, secondToken))
@@ -135,7 +150,17 @@ export class Context {
           ParseErrorKind.ArithmeticError,
         );
       }
-    } else {
+    } else if (isLeftParenthesisToken(firstToken)) {
+      this.#nextToken = secondToken;
+      const leftOperand = this.#parseParenthesis();
+      const nextToken = this.#scanner.scan();
+      if (isMultiToken(nextToken) || isDivideToken(nextToken)) {
+        return this.#parseAllMultiOrDivide(leftOperand, nextToken)
+      }
+      this.#nextToken = nextToken;
+      return leftOperand
+    }
+    else {
       this.#scanner.createErrorForToken(
         firstToken,
         ParseErrorKind.ArithmeticError,
@@ -166,6 +191,14 @@ export class Context {
 
     const maybe = maybeLeft;
     return maybe;
+  }
+
+  /**
+   * 解析圆括号内的表达式，直到遇到左圆括号相对应的右圆括号
+   */
+  #parseParenthesis(): PossibleOperand {
+    this.#stack++;
+    return this.parseAst();
   }
 
   /**

@@ -2,11 +2,13 @@ import { ParseError, ParseErrorKind } from "./error.ts";
 import {
   DivideToken,
   IntegerToken,
+  LeftParenthesisToken,
   MinusToken,
   MultiToken,
   NoneToken,
   PlusToken,
   Range,
+  RightParenthesisToken,
   type TokenKind,
 } from "./token.ts";
 
@@ -58,7 +60,10 @@ export class Scanner {
       return this.#parseDivide();
     } else if (currentChar === "(") {
       return this.#parseLeftParenthesis();
-    } else {
+    } else if (currentChar === ')') {
+      return this.#parseRightParenthesis();
+    }
+    else {
       this.#createErrorForCurrentChar(ParseErrorKind.ValidError);
     }
   }
@@ -81,7 +86,7 @@ export class Scanner {
       }
       const tokenEnd = this.#charIndex;
       this.#skipWhitespace();
-      if (this.#isOperator() || this.#isEof()) {
+      if (this.#isOperator() || this.#isEof() || this.#isRightParenthesis()) {
         const range = new Range(this.#tokenStart, tokenEnd);
         const content = this.#text.slice(this.#tokenStart, tokenEnd);
         return new IntegerToken(content, range);
@@ -142,7 +147,7 @@ export class Scanner {
     }
   }
 
-  #parseLeftParenthesis(): IntegerToken {
+  #parseLeftParenthesis(): IntegerToken | LeftParenthesisToken{
     this.#moveNextChar();
     this.#skipWhitespace();
     const currentChar = this.#currentChar();
@@ -205,17 +210,28 @@ export class Scanner {
           ParseErrorKind.SignedIntegerError,
         );
       }
-    } else {
+    } else if (this.#isDigit() || this.#isLeftParenthesis()) {
+      const range = new Range(this.#tokenStart, this.#tokenStart + 1);
+      return new LeftParenthesisToken(range);
+    } 
+    else {
       this.#createErrorForStart(
         this.#tokenStart,
-        ParseErrorKind.SignedIntegerError,
+        ParseErrorKind.LeftParenthesisError,
       );
     }
   }
 
-  // #parseRightParenthesis(): RightParenthesisToken {
-
-  // }
+  #parseRightParenthesis(): RightParenthesisToken {
+    this.#moveNextChar();
+    this.#skipWhitespace();
+    if (this.#isOperator() || this.#isEof() || this.#isRightParenthesis()) {
+      const range = new Range(this.#tokenStart, this.#tokenStart + 1);
+      return new RightParenthesisToken(range);
+    } else {
+      this.#createErrorForStart(this.#tokenStart, ParseErrorKind.RightParenthesisError);
+    }
+  }
 
   createErrorForToken(token: TokenKind, kind: ParseErrorKind): never {
     const range = token.range;
@@ -296,5 +312,9 @@ export class Scanner {
 
   #isLeftParenthesis() {
     return this.#currentChar() === "(";
+  }
+
+  #isRightParenthesis() {
+    return this.#currentChar() === ")";
   }
 }

@@ -1,8 +1,6 @@
 import {
   type IntegerToken,
   isIntegerToken,
-  type NoneToken,
-  type TokenKind,
 } from "./token.ts";
 
 /**
@@ -98,7 +96,7 @@ export class PlusArithmetic extends BaseArithmetic implements Arithmetic {
   }
 
   pretty(): string {
-    return `${this.prettyLeft()} + ${this.prettyRight()}`;
+    return `(${this.prettyLeft()} + ${this.prettyRight()})`;
   }
 }
 
@@ -121,7 +119,7 @@ export class MinusAtirhmetic extends BaseArithmetic implements Arithmetic {
   }
 
   pretty(): string {
-    return `${this.prettyLeft()} - ${this.prettyRight()}`;
+    return `(${this.prettyLeft()} - ${this.prettyRight()})`;
   }
 }
 
@@ -144,7 +142,7 @@ export class MultiArithmetic extends BaseArithmetic implements Arithmetic {
   }
 
   pretty(): string {
-    return `${this.prettyLeft()} * ${this.prettyRight()}`;
+    return `(${this.prettyLeft()} * ${this.prettyRight()})`;
   }
 }
 
@@ -167,21 +165,6 @@ export class DivideArithmetic extends BaseArithmetic implements Arithmetic {
   }
 
   pretty(): string {
-    return `${this.prettyLeft()} / ${this.prettyRight()}`;
-  }
-}
-
-type ChildrenType = Array<
-  Exclude<TokenKind, NoneToken> | ParenthesisArithmetic
->;
-
-/**
- * 圆括号表达式
- */
-export class ParenthesisArithmetic {
-  children: ChildrenType;
-
-  constructor(children: ChildrenType) {
-    this.children = children;
+    return `(${this.prettyLeft()} / ${this.prettyRight()})`;
   }
 }
