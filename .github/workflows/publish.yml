@@ -1,0 +1,19 @@
+name: 发布
+on:
+  push:
+    branches:
+      - main
+  
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 发布到 jsr
+        run: deno publish
