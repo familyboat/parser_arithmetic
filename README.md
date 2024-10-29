@@ -62,7 +62,7 @@ deno run https://jsr.io/@parser/arithmetic/0.1.0/main.ts
 或者
 
 ```bash
-deno run https://jsr.io/@parser/arithmetic/0.1.0/main.ts 1+2+3
+deno run https://jsr.io/@parser/arithmetic/0.2.2/main.ts 1+2+3
 ```
 
 ## 使用方法
